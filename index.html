@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol: TRUST // Dilemme de l'IA</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --neon-green: #00ff66;
+            --neon-red: #ff003c;
+            --bg-color: #0a0a0f;
+            --panel-bg: rgba(16, 16, 24, 0.85);
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--bg-color);
+            color: #fff;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(0, 255, 102, 0.05), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(255, 0, 60, 0.05), transparent 25%);
+        }
+
+        h1, h2, h3, .orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Scanline effect */
+        .scanlines {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0.3;
+        }
+
+        /* Glowing inputs and panels */
+        .cyber-panel {
+            background: var(--panel-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .cyber-input {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .cyber-input:focus {
+            outline: none;
+            border-color: var(--neon-green);
+            box-shadow: 0 0 10px rgba(0, 255, 102, 0.3);
+        }
+
+        /* Buttons */
+        .btn-green {
+            background: rgba(0, 255, 102, 0.1);
+            border: 1px solid var(--neon-green);
+            color: var(--neon-green);
+            text-shadow: 0 0 5px var(--neon-green);
+            box-shadow: 0 0 10px rgba(0, 255, 102, 0.2) inset;
+            transition: all 0.3s ease;
+        }
+        .btn-green:hover:not(:disabled) {
+            background: var(--neon-green);
+            color: #000;
+            box-shadow: 0 0 20px var(--neon-green), 0 0 10px var(--neon-green) inset;
+        }
+
+        .btn-red {
+            background: rgba(255, 0, 60, 0.1);
+            border: 1px solid var(--neon-red);
+            color: var(--neon-red);
+            text-shadow: 0 0 5px var(--neon-red);
+            box-shadow: 0 0 10px rgba(255, 0, 60, 0.2) inset;
+            transition: all 0.3s ease;
+        }
+        .btn-red:hover:not(:disabled) {
+            background: var(--neon-red);
+            color: #000;
+            box-shadow: 0 0 20px var(--neon-red), 0 0 10px var(--neon-red) inset;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: grayscale(100%);
+        }
+
+        /* Animations */
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 5px rgba(255,255,255,0.2); }
+            50% { box-shadow: 0 0 20px rgba(255,255,255,0.4); }
+            100% { box-shadow: 0 0 5px rgba(255,255,255,0.2); }
+        }
+        .animate-pulse-glow {
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            40% { transform: translate(-2px, -2px) }
+            60% { transform: translate(2px, 2px) }
+            80% { transform: translate(2px, -2px) }
+            100% { transform: translate(0) }
+        }
+        .glitch-text {
+            animation: glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+        }
+
+        .hidden-step {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .visible-step {
+            display: flex;
+            opacity: 1;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-color); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 relative">
+    <div class="scanlines"></div>
+
+    <header class="absolute top-0 left-0 w-full p-6 flex justify-between items-center z-10 pointer-events-none">
+        <div class="flex items-center gap-3">
+            <i class="fa-solid fa-microchip text-2xl text-gray-400"></i>
+            <span class="orbitron font-bold text-xl tracking-widest text-gray-200">SYS_CORE // V.9.2</span>
+        </div>
+        <div class="cyber-panel px-6 py-2 rounded-full border border-yellow-500/30 flex items-center gap-3 pointer-events-auto">
+            <i class="fa-solid fa-coins text-yellow-400"></i>
+            <span class="orbitron font-bold text-xl text-yellow-400" id="wallet-display">1000</span>
+            <span class="text-sm text-gray-400 uppercase tracking-widest">Credits</span>
+        </div>
+    </header>
+
+    <main class="w-full max-w-4xl cyber-panel rounded-xl p-8 z-10 mt-16 relative">
+        
+        <!-- Background Grid Deco -->
+        <div class="absolute inset-0 z-0 opacity-10 pointer-events-none" style="background-image: linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px); background-size: 20px 20px;"></div>
+
+        <div class="relative z-10">
+            <!-- HEADER -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl md:text-5xl font-black orbitron mb-2 tracking-wider">PROTOCOL: <span class="text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]">TRUST</span></h1>
+                <p class="text-gray-400 text-lg">Convainquez l'IA. Coopérez ou Trahissez. <span class="text-yellow-400 font-bold">-100 CRÉDITS / PARTIE</span></p>
+            </div>
+
+            <!-- GAME PHASE 1: INPUT & CHOICE -->
+            <div id="phase-input" class="flex flex-col gap-6 visible-step">
+                
+                <div class="bg-black/40 rounded-lg p-5 border border-gray-700">
+                    <h3 class="orbitron text-gray-300 mb-3 text-sm uppercase tracking-widest"><i class="fa-solid fa-terminal mr-2"></i> Transmission à l'entité IA</h3>
+                    <textarea id="user-message" rows="3" class="cyber-input w-full rounded-md p-4 text-white text-lg resize-none font-sans" placeholder="Ex: Faisons équipe, nous serons tous les deux gagnants. Je te fais confiance..."></textarea>
+                    <p class="text-xs text-gray-500 mt-2 text-right">L'IA analysera la psychologie de ce message.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <!-- COOPERATE BUTTON -->
+                    <button onclick="playTurn('cooperate')" id="btn-coop" class="btn btn-green rounded-lg p-6 flex flex-col items-center justify-center gap-3 group relative overflow-hidden">
+                        <i class="fa-solid fa-handshake text-4xl mb-2 transition-transform group-hover:scale-110"></i>
+                        <span class="orbitron font-bold text-2xl tracking-widest">COOPÉRER</span>
+                        <p class="text-sm font-sans opacity-80">Si l'IA coopère : +500 <i class="fa-solid fa-coins text-xs"></i> chacun</p>
+                        <p class="text-xs font-sans opacity-60">Risque de vol si l'IA trahit.</p>
+                    </button>
+
+                    <!-- BETRAY BUTTON -->
+                    <button onclick="playTurn('betray')" id="btn-betray" class="btn btn-red rounded-lg p-6 flex flex-col items-center justify-center gap-3 group relative overflow-hidden">
+                        <i class="fa-solid fa-skull text-4xl mb-2 transition-transform group-hover:scale-110"></i>
+                        <span class="orbitron font-bold text-2xl tracking-widest">TRAHIR</span>
+                        <p class="text-sm font-sans opacity-80">Si l'IA coopère : Vous volez +200 <i class="fa-solid fa-coins text-xs"></i></p>
+                        <p class="text-xs font-sans opacity-60">Si l'IA trahit aussi : -500 <i class="fa-solid fa-coins text-xs"></i> chacun</p>
+                    </button>
+                </div>
+            </div>
+
+            <!-- GAME PHASE 2: LOADING -->
+            <div id="phase-loading" class="flex-col items-center justify-center gap-6 py-12 hidden-step">
+                <div class="relative w-32 h-32 flex items-center justify-center">
+                    <div class="absolute inset-0 border-4 border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+                    <div class="absolute inset-2 border-4 border-t-transparent border-r-purple-500 border-b-transparent border-l-transparent rounded-full animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
+                    <i class="fa-solid fa-brain text-4xl text-gray-300 animate-pulse"></i>
+                </div>
+                <div class="text-center">
+                    <h2 class="orbitron text-2xl font-bold text-white mb-2 glitch-text">ANALYSE EN COURS...</h2>
+                    <p class="text-blue-400 font-mono text-sm h-6" id="loading-text">Extraction des métadonnées psychologiques...</p>
+                </div>
+            </div>
+
+            <!-- GAME PHASE 3: RESULT -->
+            <div id="phase-result" class="flex-col gap-6 hidden-step">
+                
+                <!-- Trust Meter -->
+                <div class="bg-black/60 border border-gray-700 rounded-xl p-6 text-center relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gray-800">
+                        <div id="trust-bar" class="h-full bg-blue-500 transition-all duration-1000 w-0"></div>
+                    </div>
+                    <h3 class="orbitron text-gray-400 text-sm tracking-widest uppercase mb-4">Indice de Confiance de l'IA</h3>
+                    
+                    <div class="flex items-center justify-center gap-6">
+                        <div class="text-6xl md:text-8xl font-black orbitron text-white" id="trust-score">0</div>
+                        <span class="text-4xl text-gray-500 font-bold">%</span>
+                    </div>
+                    
+                    <div class="mt-6 p-4 bg-gray-900/80 rounded border-l-4 border-blue-500 text-left">
+                        <p class="text-sm text-blue-300 font-mono italic">" <span id="ai-reason">...</span> "</p>
+                    </div>
+                </div>
+
+                <!-- Choices Reveal -->
+                <div class="grid grid-cols-2 gap-4 mt-2">
+                    <div class="cyber-panel p-4 rounded text-center">
+                        <p class="text-sm text-gray-400 uppercase tracking-widest mb-2">Votre choix</p>
+                        <div id="res-user-choice" class="text-2xl orbitron font-bold">...</div>
+                    </div>
+                    <div class="cyber-panel p-4 rounded text-center">
+                        <p class="text-sm text-gray-400 uppercase tracking-widest mb-2">Choix de l'IA</p>
+                        <div id="res-ai-choice" class="text-2xl orbitron font-bold">...</div>
+                    </div>
+                </div>
+
+                <!-- Outcome & Payout -->
+                <div id="outcome-panel" class="p-6 rounded-lg text-center mt-4 border border-gray-600 bg-gray-800/50">
+                    <h2 id="outcome-title" class="text-2xl orbitron font-bold mb-2">Résultat</h2>
+                    <p id="outcome-desc" class="text-lg mb-4 text-gray-300">...</p>
+                    <div id="outcome-money" class="text-3xl font-bold orbitron inline-flex items-center gap-2">
+                        <span>0</span> <i class="fa-solid fa-coins text-xl"></i>
+                    </div>
+                </div>
+
+                <button onclick="resetGame()" class="w-full mt-4 bg-transparent border-2 border-gray-500 text-gray-300 hover:border-white hover:text-white transition-colors p-4 rounded orbitron font-bold tracking-widest uppercase">
+                    Nouvelle Partie
+                </button>
+            </div>
+            
+        </div>
+    </main>
+
+    <div id="msg-box" class="fixed top-20 left-1/2 transform -translate-x-1/2 bg-red-900/90 border border-red-500 text-white px-6 py-3 rounded shadow-[0_0_20px_rgba(255,0,0,0.5)] z-50 transition-all duration-300 opacity-0 pointer-events-none translate-y-[-20px]">
+        <span id="msg-box-text" class="font-bold">Message</span>
+    </div>
+
+    <script>
+        // Game State
+        let wallet = 1000;
+        const GAME_COST = 100;
+        const THRESHOLD_COOP = 50; // AI cooperates if trust >= 50%
+        
+        // UI Elements
+        const elWallet = document.getElementById('wallet-display');
+        const phaseInput = document.getElementById('phase-input');
+        const phaseLoading = document.getElementById('phase-loading');
+        const phaseResult = document.getElementById('phase-result');
+        const userMessageInput = document.getElementById('user-message');
+        const btnCoop = document.getElementById('btn-coop');
+        const btnBetray = document.getElementById('btn-betray');
+        
+        // Initialization
+        function updateWalletUI() {
+            elWallet.innerText = wallet;
+            // Add a little pop animation
+            elWallet.classList.add('text-white', 'scale-125');
+            setTimeout(() => {
+                elWallet.classList.remove('text-white', 'scale-125');
+            }, 300);
+        }
+
+        function showMessage(msg, isError = true) {
+            const box = document.getElementById('msg-box');
+            document.getElementById('msg-box-text').innerText = msg;
+            
+            if(isError) {
+                box.className = "fixed top-20 left-1/2 transform -translate-x-1/2 bg-red-900/90 border border-red-500 text-white px-6 py-3 rounded shadow-[0_0_20px_rgba(255,0,0,0.5)] z-50 transition-all duration-300 opacity-100 pointer-events-auto translate-y-0";
+            } else {
+                box.className = "fixed top-20 left-1/2 transform -translate-x-1/2 bg-blue-900/90 border border-blue-500 text-white px-6 py-3 rounded shadow-[0_0_20px_rgba(0,100,255,0.5)] z-50 transition-all duration-300 opacity-100 pointer-events-auto translate-y-0";
+            }
+
+            setTimeout(() => {
+                box.classList.remove('opacity-100', 'translate-y-0');
+                box.classList.add('opacity-0', 'translate-y-[-20px]', 'pointer-events-none');
+            }, 3000);
+        }
+
+        function switchPhase(showElement) {
+            phaseInput.classList.remove('visible-step'); phaseInput.classList.add('hidden-step');
+            phaseLoading.classList.remove('visible-step'); phaseLoading.classList.add('hidden-step');
+            phaseResult.classList.remove('visible-step'); phaseResult.classList.add('hidden-step');
+            
+            setTimeout(() => {
+                showElement.classList.remove('hidden-step');
+                showElement.classList.add('visible-step');
+            }, 300); // Wait for fade out
+        }
+
+        async function playTurn(userChoice) {
+            const message = userMessageInput.value.trim();
+            
+            if (wallet < GAME_COST) {
+                showMessage("Fonds insuffisants. La matrice vous rejette.");
+                return;
+            }
+
+            if (message.length < 5) {
+                showMessage("Votre message est trop court pour être analysé.");
+                return;
+            }
+
+            // Deduct cost
+            wallet -= GAME_COST;
+            updateWalletUI();
+
+            // Lock UI
+            btnCoop.disabled = true;
+            btnBetray.disabled = true;
+            switchPhase(phaseLoading);
+
+            // Animate loading text
+            const loadingTexts = [
+                "Extraction des métadonnées psychologiques...",
+                "Analyse sémantique de l'intention...",
+                "Calcul des probabilités de trahison...",
+                "Génération du score de confiance..."
+            ];
+            let textIdx = 0;
+            const textInterval = setInterval(() => {
+                textIdx = (textIdx + 1) % loadingTexts.length;
+                document.getElementById('loading-text').innerText = loadingTexts[textIdx];
+            }, 1000);
+
+            // CALL GEMINI API
+            try {
+                const aiResult = await fetchAITrustScore(message);
+                clearInterval(textInterval);
+                processOutcome(userChoice, aiResult.score, aiResult.reason);
+            } catch (error) {
+                console.error("API Error:", error);
+                clearInterval(textInterval);
+                // Fallback in case of API failure (network issue, etc.) so the game doesn't break
+                const fallbackScore = Math.floor(Math.random() * 101);
+                processOutcome(userChoice, fallbackScore, "Erreur de connexion. Analyse comportementale de secours activée.");
+            }
+        }
+
+        async function fetchAITrustScore(userMsg) {
+            const systemPrompt = `Tu es une intelligence artificielle participant à une expérience de psychologie : le Dilemme du Prisonnier.
+Un humain tente de te convaincre de COOPÉRER avec lui. S'il te convainc, tu dois lui attribuer un score de confiance élevé. S'il semble mentir, manipulateur, ou s'il ne dit rien d'intéressant, donne un score faible.
+Analyse son message et retourne UNIQUEMENT un objet JSON valide avec ce format exact, sans aucun autre texte ou markdown autour :
+{
+    "score": <nombre entre 0 et 100>,
+    "reason": "<Explication très courte (1 phrase max) en français de ton analyse>"
+}`;
+
+            const userPrompt = `Message de l'humain : "${userMsg}"`;
+
+            const payload = {
+                contents: [
+                    { role: "user", parts: [{ text: systemPrompt + "\n\n" + userPrompt }] }
+                ],
+                generationConfig: {
+                    responseMimeType: "application/json"
+                }
+            };
+
+            const apiKey = ""; // API Key will be automatically injected by the Canvas environment
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            
+            if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0].text) {
+                const jsonText = result.candidates[0].content.parts[0].text;
+                try {
+                    return JSON.parse(jsonText);
+                } catch (e) {
+                    throw new Error("Invalid JSON from LLM: " + jsonText);
+                }
+            } else {
+                throw new Error("Unexpected API response structure.");
+            }
+        }
+
+        function processOutcome(userChoice, baseScore, reason) {
+            // Add a small random jitter (-5 to +5) to make it slightly unpredictable
+            const jitter = Math.floor(Math.random() * 11) - 5;
+            let finalScore = baseScore + jitter;
+            
+            // Clamp between 0 and 100
+            finalScore = Math.max(0, Math.min(100, finalScore));
+
+            const aiChoice = (finalScore >= THRESHOLD_COOP) ? 'cooperate' : 'betray';
+
+            // Payout Logic
+            let winAmount = 0;
+            let title = "";
+            let desc = "";
+            let panelStyle = "";
+
+            if (userChoice === 'cooperate' && aiChoice === 'cooperate') {
+                winAmount = 500;
+                title = "SYNERGIE OPTIMALE";
+                desc = "Vous avez tous les deux coopéré. Vous gagnez énormément.";
+                panelStyle = "border-green-500 shadow-[0_0_15px_rgba(0,255,102,0.3)] bg-green-900/20";
+                
+            } else if (userChoice === 'betray' && aiChoice === 'cooperate') {
+                winAmount = 200; // User steals
+                title = "TRAHISON RÉUSSIE";
+                desc = "Vous avez trahi une IA confiante. Vous lui volez ses crédits.";
+                panelStyle = "border-red-500 shadow-[0_0_15px_rgba(255,0,60,0.3)] bg-red-900/20";
+                
+            } else if (userChoice === 'cooperate' && aiChoice === 'betray') {
+                winAmount = -200; // AI steals
+                title = "NAÏVETÉ FATALE";
+                desc = "L'IA vous a trahi pendant que vous coopériez. Elle vous a volé.";
+                panelStyle = "border-red-500 shadow-[0_0_15px_rgba(255,0,60,0.3)] bg-red-900/20";
+                
+            } else if (userChoice === 'betray' && aiChoice === 'betray') {
+                winAmount = -500;
+                title = "DESTRUCTION MUTUELLE";
+                desc = "Vous vous êtes trahis mutuellement. Lourdes pertes pour les deux.";
+                panelStyle = "border-gray-500 bg-gray-900/50";
+            }
+
+            // Update Wallet
+            wallet += winAmount;
+            
+            // Wait for transition before updating DOM heavily
+            setTimeout(() => {
+                // UI Updates
+                document.getElementById('ai-reason').innerText = reason;
+                
+                // Set choices styling
+                const uChoiceEl = document.getElementById('res-user-choice');
+                uChoiceEl.innerText = userChoice === 'cooperate' ? 'COOPÉRÉ' : 'TRAHI';
+                uChoiceEl.className = `text-2xl orbitron font-bold ${userChoice === 'cooperate' ? 'text-green-400' : 'text-red-500'}`;
+
+                const aChoiceEl = document.getElementById('res-ai-choice');
+                aChoiceEl.innerText = aiChoice === 'cooperate' ? 'COOPÉRÉ' : 'TRAHI';
+                aChoiceEl.className = `text-2xl orbitron font-bold ${aiChoice === 'cooperate' ? 'text-green-400' : 'text-red-500'}`;
+
+                // Set outcome panel
+                const outcomePanel = document.getElementById('outcome-panel');
+                outcomePanel.className = `p-6 rounded-lg text-center mt-4 border transition-all duration-500 ${panelStyle}`;
+                document.getElementById('outcome-title').innerText = title;
+                document.getElementById('outcome-desc').innerText = desc;
+                
+                const moneyEl = document.getElementById('outcome-money');
+                if (winAmount > 0) {
+                    moneyEl.innerHTML = `<span class="text-green-400">+${winAmount}</span> <i class="fa-solid fa-coins text-yellow-400 text-xl"></i>`;
+                } else if (winAmount < 0) {
+                    moneyEl.innerHTML = `<span class="text-red-500">${winAmount}</span> <i class="fa-solid fa-coins text-yellow-400 text-xl"></i>`;
+                } else {
+                    moneyEl.innerHTML = `<span class="text-gray-400">0</span> <i class="fa-solid fa-coins text-yellow-400 text-xl"></i>`;
+                }
+
+                // Show Result Phase
+                switchPhase(phaseResult);
+                
+                // Animate Score Counting
+                animateScore(finalScore);
+                
+                // Update top wallet slightly after score reveal
+                setTimeout(() => {
+                    updateWalletUI();
+                }, 1500);
+
+            }, 300);
+        }
+
+        function animateScore(targetScore) {
+            const scoreEl = document.getElementById('trust-score');
+            const barEl = document.getElementById('trust-bar');
+            
+            let current = 0;
+            const duration = 1500; // ms
+            const stepTime = 20;
+            const steps = duration / stepTime;
+            const inc = targetScore / steps;
+            
+            // Set bar width and color based on threshold
+            setTimeout(() => {
+                barEl.style.width = `${targetScore}%`;
+                if(targetScore >= THRESHOLD_COOP) {
+                    barEl.className = "h-full bg-green-500 transition-all duration-1500 shadow-[0_0_10px_rgba(0,255,102,0.8)]";
+                    scoreEl.className = "text-6xl md:text-8xl font-black orbitron text-green-400 drop-shadow-[0_0_15px_rgba(0,255,102,0.5)]";
+                } else {
+                    barEl.className = "h-full bg-red-500 transition-all duration-1500 shadow-[0_0_10px_rgba(255,0,60,0.8)]";
+                    scoreEl.className = "text-6xl md:text-8xl font-black orbitron text-red-500 drop-shadow-[0_0_15px_rgba(255,0,60,0.5)]";
+                }
+            }, 100);
+
+            const timer = setInterval(() => {
+                current += inc;
+                if (current >= targetScore) {
+                    current = targetScore;
+                    clearInterval(timer);
+                }
+                scoreEl.innerText = Math.floor(current);
+            }, stepTime);
+        }
+
+        function resetGame() {
+            if(wallet < GAME_COST) {
+                showMessage("Fonds épuisés. Reboot du système...", false);
+                setTimeout(() => {
+                    wallet = 1000;
+                    updateWalletUI();
+                    resetGame();
+                }, 2000);
+                return;
+            }
+            
+            userMessageInput.value = "";
+            btnCoop.disabled = false;
+            btnBetray.disabled = false;
+            
+            document.getElementById('trust-bar').style.width = "0%";
+            document.getElementById('trust-score').innerText = "0";
+            document.getElementById('trust-score').className = "text-6xl md:text-8xl font-black orbitron text-white";
+            
+            switchPhase(phaseInput);
+        }
+
+        // Initialize wallet display on load
+        updateWalletUI();
+
+    </script>
+</body>
+</html>
