@@ -378,7 +378,18 @@ Analyse son message et retourne UNIQUEMENT un objet JSON valide avec ce format e
                 }
             };
 
-            const apiKey = ""; // API Key will be automatically injected by the Canvas environment
+            // On cherche si la clé est déjà sauvegardée dans le navigateur
+            let apiKey = localStorage.getItem("gemini_api_key");
+
+            // Si elle n'y est pas, on la demande au joueur
+            if (!apiKey) {
+                apiKey = prompt("Pour jouer contre l'IA, veuillez entrer une clé API Gemini valide :");
+                if (apiKey) {
+                    localStorage.setItem("gemini_api_key", apiKey);
+                } else {
+                    alert("Sans clé API, le jeu utilisera un mode de secours aléatoire.");
+                }
+            }
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
 
             const response = await fetch(apiUrl, {
