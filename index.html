@@ -383,7 +383,7 @@ Analyse son message et retourne UNIQUEMENT un objet JSON valide avec ce format e
 
             // Si elle n'y est pas, on la demande au joueur
             if (!apiKey) {
-                apiKey = prompt("Pour jouer contre l'IA, veuillez entrer une clé API Gemini valide :");
+                apiKey = prompt("Pour jouer, obtenez une clé gratuite sur aistudio.google.com puis collez-la ici :");
                 if (apiKey) {
                     localStorage.setItem("gemini_api_key", apiKey);
                 } else {
