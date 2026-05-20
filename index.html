@@ -378,8 +378,9 @@ Analyse son message et retourne UNIQUEMENT un objet JSON valide avec ce format e
                 }
             };
 
-            const apiKey = "AIzaSyCJF2Abg8wq502-TMQAgJdbqRqVyBeDOVs";
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            const apiKey = ""; // API Key will be automatically injected by the Canvas environment
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
             const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
